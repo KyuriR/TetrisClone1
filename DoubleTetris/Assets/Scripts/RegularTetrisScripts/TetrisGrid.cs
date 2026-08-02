@@ -1,9 +1,13 @@
-/*
 
+
+using System.Collections.Generic;
+using NUnit.Framework.Internal;
 using UnityEngine;
 
 public class TetrisGrid : MonoBehaviour
 {
+    public static TetrisGrid Instance {get; private set;  }
+
     [SerializeField] int width = 10;
     [SerializeField] int height = 20;
     [System.NonSerialized] public Transform[,] grid;
@@ -11,7 +15,67 @@ public class TetrisGrid : MonoBehaviour
     //initialize grid
     void Awake()
     {
+        if (Instance != null && Instance != this) Destroy(gameObject);
+        Instance = this;
         grid = new Transform[width, height];
+    }
+
+    public List<int> GetFullRows()
+    {
+         var rows = new List<int>();
+         for(int y = 0; y < height; y++)
+            if(IsRowFull(y))
+                rows.Add(y);
+        return rows;
+    }
+
+    public bool IsRowFull(int y)
+    {
+        for (int x = 0; x < width; x++)
+            if (grid[x, y] == null)
+                return false;
+        return  true;
+    }
+
+    public void ClearRow(int y)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            Destroy(grid[x , y].gameObject);
+            grid[x, y] = null;
+        }
+    }
+
+    public void MoveRowDown(int y, int amount)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            Transform t = grid[x,y];
+            if(t != null)
+            {
+                grid[x, y] = null;
+                grid[x, y - amount] = t;
+                t.position += Vector3.down * amount;
+            }
+        }
+    }
+
+    public int ClearFullLines()
+    {
+        int cleared = 0;
+        for (int y = 0; y < height; y++)
+        {
+            if(IsRowFull(y))
+            {
+                ClearRow(y);
+                cleared++;
+            }
+            else if (cleared > 0)
+            {
+                MoveRowDown(y, cleared);
+            }
+        }
+        return cleared;
     }
 
     //visualize in the unity editor
@@ -39,7 +103,7 @@ public class TetrisGrid : MonoBehaviour
 }
 
 
-*/
+/*
 using UnityEngine;
 
 [ExecuteAlways]
@@ -105,3 +169,4 @@ public class TetrisGrid : MonoBehaviour
         }
     }
 }
+*/ 
