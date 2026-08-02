@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9a7ebc5a4cc9e74db5d510a23087084, type: 3}
   m_Name: J
   m_EditorClassIdentifier: Assembly-CSharp::TetrominoDataII
-  tetromino: 0
-  tile: {fileID: 0}
-  cells: []
+  tetromino: 3
+  tile: {fileID: 11400000, guid: b665b785b7d30e142b43934e79e4fef3, type: 2}
+  cells:
+  - {x: -1, y: 1}
+  - {x: 1, y: 0}
+  - {x: 0, y: 1}
+  - {x: 1, y: 0}

@@ -13,5 +13,9 @@ MonoBehaviour:
   m_Name: I
   m_EditorClassIdentifier: Assembly-CSharp::TetrominoDataII
   tetromino: 0
-  tile: {fileID: 0}
-  cells: []
+  tile: {fileID: 11400000, guid: 341dd205753f35d4c8cd0bc46eca58d3, type: 2}
+  cells:
+  - {x: -1, y: 0}
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  - {x: 2, y: 0}
