@@ -7,7 +7,7 @@ public class Board : MonoBehaviour
     public Tilemap tilemap { get; private set; }
 
     // Two active pieces instead of one. Assign these in the inspector to the
-    // two Piece components under this Board — set each one's Control Scheme
+    // two Piece components under this Board ï¿½ set each one's Control Scheme
     // field (WASD / Arrows) to match.
     public Piece activePieceA;
     public Piece activePieceB;
@@ -16,7 +16,7 @@ public class Board : MonoBehaviour
     public Vector2Int boardSize = new Vector2Int(10, 20);
 
     // Two spawn points, kept apart so the pieces don't spawn overlapping.
-    // Board is 10 wide (x range -5..4) — left/right lanes with a gap between.
+    // Board is 10 wide (x range -5..4) ï¿½ left/right lanes with a gap between.
     public Vector3Int spawnPositionA = new Vector3Int(-3, 8, 0);
     public Vector3Int spawnPositionB = new Vector3Int(2, 8, 0);
 
@@ -50,6 +50,43 @@ public class Board : MonoBehaviour
         SpawnPiece(activePieceB, spawnPositionB);
     }
 
+    private void OnDrawGizmos()
+    {
+        // Draw the playable board boundary
+        Gizmos.color = Color.cyan;
+        RectInt bounds = Bounds;
+        Vector3 center = new Vector3(
+            bounds.x + bounds.width / 2f,
+            bounds.y + bounds.height / 2f,
+            0f
+        );
+        Vector3 size = new Vector3(bounds.width, bounds.height, 1f);
+        Gizmos.DrawWireCube(center, size);
+
+        // Draw individual cell grid lines
+        Gizmos.color = new Color(1f, 1f, 1f, 0.15f);
+        for (int x = bounds.xMin; x <= bounds.xMax; x++)
+        {
+            Gizmos.DrawLine(
+                new Vector3(x, bounds.yMin, 0f),
+                new Vector3(x, bounds.yMax, 0f)
+            );
+        }
+        for (int y = bounds.yMin; y <= bounds.yMax; y++)
+        {
+            Gizmos.DrawLine(
+                new Vector3(bounds.xMin, y, 0f),
+                new Vector3(bounds.xMax, y, 0f)
+            );
+        }
+
+        // Mark the two spawn points so you can eyeball overlap issues
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(spawnPositionA, 0.4f);
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(spawnPositionB, 0.4f);
+    }
+
     // Takes which piece and where, instead of assuming a single activePiece.
     // Each Piece remembers its own spawn position (set inside Initialize) so
     // it can request a respawn at the right spot after locking.
@@ -70,7 +107,7 @@ public class Board : MonoBehaviour
             {
                 GameOver();
             }
-            // else: unresolved team decision — what happens to just one side
+            // else: unresolved team decision ï¿½ what happens to just one side
             // if only its spawn is blocked while the other still has room.
         }
     }
@@ -129,13 +166,13 @@ public class Board : MonoBehaviour
     }
 
     // Team decision (assumed): ONE shared score, matching how real Tetris only
-    // ever has a single score — not two separate per-player scores. If the
+    // ever has a single score ï¿½ not two separate per-player scores. If the
     // team decides separate scores instead, this needs restructuring.
     public int score { get; private set; }
     public int totalLinesCleared { get; private set; }
 
-    // Level increases every 10 total lines cleared — same pacing as the
-    // original game — and scales the score awarded per clear below.
+    // Level increases every 10 total lines cleared ï¿½ same pacing as the
+    // original game ï¿½ and scales the score awarded per clear below.
     public int Level => totalLinesCleared / 10;
 
     // Classic original-Tetris line-clear scores, indexed by how many lines
@@ -181,8 +218,8 @@ public class Board : MonoBehaviour
         score += awarded;
         totalLinesCleared += linesClearedThisLock;
 
-        // TEMPORARY — replace with a real UI/HUD call once that system exists.
-        Debug.Log($"Cleared {linesClearedThisLock} line(s) — +{awarded} points (Level {Level}). Total score: {score}");
+        // TEMPORARY ï¿½ replace with a real UI/HUD call once that system exists.
+        Debug.Log($"Cleared {linesClearedThisLock} line(s) ï¿½ +{awarded} points (Level {Level}). Total score: {score}");
     }
 
     public bool IsLineFull(int row)
@@ -228,7 +265,7 @@ public class Board : MonoBehaviour
     }
 
     // ---- Wrapper methods matching the team's shared contract (project plan
-    // Section 0's Task 0.1) — Collision/Input/PieceController owners on other
+    // Section 0's Task 0.1) ï¿½ Collision/Input/PieceController owners on other
     // systems should call these three, not the tilemap directly, so they stay
     // decoupled from this class's internal Tilemap implementation. ----
 
