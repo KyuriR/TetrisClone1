@@ -4,6 +4,8 @@ using UnityEngine.Tilemaps;
 public class BoardII : MonoBehaviour
 {
     public Tilemap tilemap;
+    public Tilemap lockedTilemap;
+    public Tilemap activeTilemap;
 
 
     [Header("Tetrominoes")]
@@ -54,8 +56,34 @@ public class BoardII : MonoBehaviour
             // Bottom
             if (tilePosition.y < 0)
                 return false;
+
+            // Collision with locked blocks
+            if (lockedTilemap.HasTile(tilePosition))
+                return false;
         }
 
         return true;
+    }
+    public void LockPiece(PieceII piece)
+    {
+        foreach (Vector2Int cell in piece.Data.cells)
+        {
+            Vector3Int tilePosition = piece.Position + (Vector3Int)cell;
+
+            // Remove from active tilemap
+            activeTilemap.SetTile(tilePosition, null);
+
+            // Add to locked tilemap
+            lockedTilemap.SetTile(tilePosition, piece.Data.tile);
+        }
+
+        if (piece == leftPiece)
+        {
+            SpawnPiece(leftPiece, leftSpawn);
+        }
+        else if (piece == rightPiece)
+        {
+            SpawnPiece(rightPiece, rightSpawn);
+        }
     }
 }

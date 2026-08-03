@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UIElements;
 
 public enum ControlSchemeII
 {
@@ -8,8 +9,12 @@ public enum ControlSchemeII
 }
 
 
+
+
 public class PieceII : MonoBehaviour
 {
+    public Vector3Int Position => position;
+
     private BoardII board;
     private TetrominoDataII data;
     private Vector3Int position;
@@ -27,13 +32,15 @@ public class PieceII : MonoBehaviour
         nextFallTime = Time.time + fallTime;
     }
 
+  
+
     public TetrominoDataII Data => data;
     private void Draw()
     {
         foreach (Vector2Int cell in data.cells)
         {
             Vector3Int tilePosition = position + (Vector3Int)cell;
-            board.tilemap.SetTile(tilePosition, data.tile);
+            board.activeTilemap.SetTile(tilePosition, data.tile);
         }
     }
     private void Update()
@@ -71,9 +78,24 @@ public class PieceII : MonoBehaviour
         if (board.IsValidPosition(this, newPosition))
         {
             position = newPosition;
+            Draw();
         }
+        else
+        {
+            // Put the piece back where it was
+            Draw();
 
-        Draw();
+            // If we were trying to move down, the piece has landed
+            if (direction == Vector3Int.down)
+            {
+                Lock();
+            }
+        }
+    }
+
+    private void Lock()
+    {
+        board.LockPiece(this);
     }
 
     private void Clear()
@@ -81,7 +103,7 @@ public class PieceII : MonoBehaviour
         foreach (Vector2Int cell in data.cells)
         {
             Vector3Int tilePosition = position + (Vector3Int)cell;
-            board.tilemap.SetTile(tilePosition, null);
+            board.activeTilemap.SetTile(tilePosition, null);
         }
     }
 
