@@ -1,12 +1,9 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-
-
 [DefaultExecutionOrder(-1)]
 public class Board : MonoBehaviour
 {
-    private TetrominoData nextPiece;
     public Tilemap tilemap { get; private set; }
     public NextPiecePreview previewA;
     public NextPiecePreview previewB;
@@ -14,29 +11,20 @@ public class Board : MonoBehaviour
     private TetrominoData nextPieceA;
     private TetrominoData nextPieceB;
 
-    // Two active pieces instead of one. Assign these in the inspector to the
-    // two Piece components under this Board � set each one's Control Scheme
-    // field (WASD / Arrows) to match.
     public Piece activePieceA;
     public Piece activePieceB;
 
     public TetrominoData[] tetrominoes;
     public Vector2Int boardSize = new Vector2Int(10, 20);
 
-    // Two spawn points, kept apart so the pieces don't spawn overlapping.
-    // Board is 10 wide (x range -5..4) � left/right lanes with a gap between.
     public Vector3Int spawnPositionA = new Vector3Int(-3, 8, 0);
     public Vector3Int spawnPositionB = new Vector3Int(2, 8, 0);
 
-    // Team decision (project plan Section 2/3.9): does the game end if EITHER
-    // piece fails to spawn, or only if BOTH do? Exposed as a toggle rather
-    // than hardcoded, since this is a real design decision, not just a bug fix.
     public bool endGameOnEitherBlocked = true;
-    //public LineClearPopup lineClearPopup;
+
+    public bool isGameOver { get; private set; }
 
     public RectInt Bounds
-
-
     {
         get
         {
@@ -57,7 +45,6 @@ public class Board : MonoBehaviour
 
     private void Start()
     {
-        nextPiece = tetrominoes[Random.Range(0, tetrominoes.Length)]; //Generatethe next piece
         nextPieceA = tetrominoes[Random.Range(0, tetrominoes.Length)];
         nextPieceB = tetrominoes[Random.Range(0, tetrominoes.Length)];
 
@@ -70,7 +57,6 @@ public class Board : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Draw the playable board boundary
         Gizmos.color = Color.cyan;
         RectInt bounds = Bounds;
         Vector3 center = new Vector3(
@@ -81,7 +67,6 @@ public class Board : MonoBehaviour
         Vector3 size = new Vector3(bounds.width, bounds.height, 1f);
         Gizmos.DrawWireCube(center, size);
 
-        // Draw individual cell grid lines
         Gizmos.color = new Color(1f, 1f, 1f, 0.15f);
         for (int x = bounds.xMin; x <= bounds.xMax; x++)
         {
@@ -98,45 +83,35 @@ public class Board : MonoBehaviour
             );
         }
 
-        // Mark the two spawn points so you can eyeball overlap issues
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(spawnPositionA, 0.4f);
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(spawnPositionB, 0.4f);
     }
 
-    // Takes which piece and where, instead of assuming a single activePiece.
-    // Each Piece remembers its own spawn position (set inside Initialize) so
-    // it can request a respawn at the right spot after locking.
     public void SpawnPiece(Piece piece, Vector3Int spawnPosition)
     {
+        if (isGameOver)
+        {
+            return;
+        }
+
         TetrominoData data;
 
         if (piece == activePieceA)
         {
             data = nextPieceA;
-
             nextPieceA = tetrominoes[Random.Range(0, tetrominoes.Length)];
-
             previewA.Show(nextPieceA);
         }
         else
         {
             data = nextPieceB;
-
             nextPieceB = tetrominoes[Random.Range(0, tetrominoes.Length)];
-
             previewB.Show(nextPieceB);
         }
 
         piece.Initialize(this, spawnPosition, data);
-
-
-
-       // int random = Random.Range(0, tetrominoes.Length);
-       // TetrominoData data = tetrominoes[random];
-
-        //piece.Initialize(this, spawnPosition, data);
 
         if (IsValidPosition(piece, spawnPosition))
         {
@@ -148,15 +123,29 @@ public class Board : MonoBehaviour
             {
                 GameOver();
             }
-            // else: unresolved team decision � what happens to just one side
-            // if only its spawn is blocked while the other still has room.
         }
     }
 
     public void GameOver()
     {
-        tilemap.ClearAllTiles();
-        // Do anything else you want on game over here..
+        if (isGameOver)
+        {
+            return;
+        }
+
+        isGameOver = true;
+
+        if (activePieceA != null)
+        {
+            activePieceA.enabled = false;
+        }
+
+        if (activePieceB != null)
+        {
+            activePieceB.enabled = false;
+        }
+
+        Debug.Log($"GAME OVER. Final score: {score}");
     }
 
     public void Set(Piece piece)
@@ -177,13 +166,6 @@ public class Board : MonoBehaviour
         }
     }
 
-    // Piece-vs-wall, piece-vs-stack, AND piece-vs-other-piece collision all in
-    // one check: as long as each Piece clears its own cells before testing a
-    // move and re-sets them after (which Piece.cs's Update loop already does),
-    // tilemap.HasTile reflects the OTHER active piece's current cells here,
-    // exactly the same way it reflects the locked stack. This is what resolves
-    // the original "how do you control both without restricting the other"
-    // problem from the project plan's Phase 2 design evolution.
     public bool IsValidPosition(Piece piece, Vector3Int position)
     {
         RectInt bounds = Bounds;
@@ -206,29 +188,16 @@ public class Board : MonoBehaviour
         return true;
     }
 
-    // Team decision (assumed): ONE shared score, matching how real Tetris only
-    // ever has a single score � not two separate per-player scores. If the
-    // team decides separate scores instead, this needs restructuring.
     public int score { get; private set; }
     public int totalLinesCleared { get; private set; }
-
-    // Level increases every 10 total lines cleared � same pacing as the
-    // original game � and scales the score awarded per clear below.
     public int Level => totalLinesCleared / 10;
+    public event System.Action<int> OnRowCleared;
+    public event System.Action<int, int, Vector3> OnScoreAwarded;
 
-    // Classic original-Tetris line-clear scores, indexed by how many lines
-    // clear AT ONCE in a single lock (not lifetime total): 1/2/3/4 lines.
-    // Index 0 is unused padding so the array lines up with lineCount directly.
     private static readonly int[] LineClearScores = { 0, 40, 100, 300, 1200 };
 
     public void ClearLines(Piece lockedPiece = null)
     {
-        // Figure out which piece (if any) is still falling right now, so we can
-        // pull it out of the tilemap before shifting rows. Without this, the
-        // still-falling piece's cells get shifted down along with the real
-        // stack (since they're currently baked into the same tilemap), and its
-        // own Piece.position never gets updated to match — leaving an orphaned
-        // "ghost" copy of its cells behind at the old spot next frame.
         Piece other = null;
         if (lockedPiece == activePieceA) other = activePieceB;
         else if (lockedPiece == activePieceB) other = activePieceA;
@@ -241,13 +210,16 @@ public class Board : MonoBehaviour
         RectInt bounds = Bounds;
         int row = bounds.yMin;
         int linesClearedThisLock = 0;
+        System.Collections.Generic.List<int> clearedRows = new System.Collections.Generic.List<int>();
 
         while (row < bounds.yMax)
         {
             if (IsLineFull(row))
             {
+                OnRowCleared?.Invoke(row);
                 LineClear(row);
                 linesClearedThisLock++;
+                clearedRows.Add(row);
             }
             else
             {
@@ -257,21 +229,16 @@ public class Board : MonoBehaviour
 
         if (linesClearedThisLock > 0)
         {
-            AwardScore(linesClearedThisLock);
+            AwardScore(linesClearedThisLock, clearedRows);
         }
 
-        // Put the other piece back, now that the stack underneath it is correct.
         if (other != null)
         {
             Set(other);
         }
-
-        //lineClearPopup.Show(linesClearedThisLock);
     }
 
-    // Awards points for however many lines cleared in one lock event, scaled
-    // by the current level, and advances totalLinesCleared/Level for next time.
-    private void AwardScore(int linesClearedThisLock)
+    private void AwardScore(int linesClearedThisLock, System.Collections.Generic.List<int> clearedRows)
     {
         int index = Mathf.Clamp(linesClearedThisLock, 0, LineClearScores.Length - 1);
         int awarded = LineClearScores[index] * (Level + 1);
@@ -279,8 +246,19 @@ public class Board : MonoBehaviour
         score += awarded;
         totalLinesCleared += linesClearedThisLock;
 
-        // TEMPORARY � replace with a real UI/HUD call once that system exists.
-        Debug.Log($"Cleared {linesClearedThisLock} line(s) � +{awarded} points (Level {Level}). Total score: {score}");
+        float averageRow = 0f;
+        foreach (int r in clearedRows)
+        {
+            averageRow += r;
+        }
+        averageRow /= clearedRows.Count;
+
+        RectInt bounds = Bounds;
+        Vector3 popupPosition = new Vector3(bounds.xMin + bounds.width / 2f, averageRow + 0.5f, 0f);
+
+        OnScoreAwarded?.Invoke(linesClearedThisLock, awarded, popupPosition);
+
+        Debug.Log($"Cleared {linesClearedThisLock} line(s), plus {awarded} points, Level {Level}. Total score: {score}");
     }
 
     public bool IsLineFull(int row)
@@ -324,11 +302,6 @@ public class Board : MonoBehaviour
             row++;
         }
     }
-
-    // ---- Wrapper methods matching the team's shared contract (project plan
-    // Section 0's Task 0.1) � Collision/Input/PieceController owners on other
-    // systems should call these three, not the tilemap directly, so they stay
-    // decoupled from this class's internal Tilemap implementation. ----
 
     public bool IsCellOccupied(int x, int y)
     {
