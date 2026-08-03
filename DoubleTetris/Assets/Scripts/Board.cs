@@ -180,17 +180,29 @@ public class Board : MonoBehaviour
     // Index 0 is unused padding so the array lines up with lineCount directly.
     private static readonly int[] LineClearScores = { 0, 40, 100, 300, 1200 };
 
-    public void ClearLines()
+    public void ClearLines(Piece lockedPiece = null)
     {
+        // Figure out which piece (if any) is still falling right now, so we can
+        // pull it out of the tilemap before shifting rows. Without this, the
+        // still-falling piece's cells get shifted down along with the real
+        // stack (since they're currently baked into the same tilemap), and its
+        // own Piece.position never gets updated to match — leaving an orphaned
+        // "ghost" copy of its cells behind at the old spot next frame.
+        Piece other = null;
+        if (lockedPiece == activePieceA) other = activePieceB;
+        else if (lockedPiece == activePieceB) other = activePieceA;
+
+        if (other != null)
+        {
+            Clear(other);
+        }
+
         RectInt bounds = Bounds;
         int row = bounds.yMin;
         int linesClearedThisLock = 0;
 
-        // Clear from bottom to top
         while (row < bounds.yMax)
         {
-            // Only advance to the next row if the current is not cleared
-            // because the tiles above will fall down when a row is cleared
             if (IsLineFull(row))
             {
                 LineClear(row);
@@ -205,6 +217,12 @@ public class Board : MonoBehaviour
         if (linesClearedThisLock > 0)
         {
             AwardScore(linesClearedThisLock);
+        }
+
+        // Put the other piece back, now that the stack underneath it is correct.
+        if (other != null)
+        {
+            Set(other);
         }
     }
 
@@ -282,6 +300,6 @@ public class Board : MonoBehaviour
     public void LockPiece(Piece piece)
     {
         Set(piece);
-        ClearLines();
+        ClearLines(piece);
     }
 }

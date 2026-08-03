@@ -14,13 +14,13 @@ public class Piece : MonoBehaviour
     public Vector3Int position { get; private set; }
     public int rotationIndex { get; private set; }
 
-    // Set in the inspector — this is what makes one Piece instance
+    // Set in the inspector ï¿½ this is what makes one Piece instance
     // respond to WASD and the other to Arrow Keys, per the assignment's
     // core twist. Set once per Piece GameObject and never changed at runtime.
     public ControlScheme controlScheme = ControlScheme.WASD;
 
     // Remembered so Lock() can ask the Board to respawn THIS piece at its
-    // own spawn point, not the other piece's — needed now that there are two.
+    // own spawn point, not the other piece's ï¿½ needed now that there are two.
     private Vector3Int spawnPosition;
 
     public float stepDelay = 1f;
@@ -61,7 +61,7 @@ public class Piece : MonoBehaviour
         // Timer allowing the player to make adjustments before locking in place
         lockTime += Time.deltaTime;
 
-        // Handle rotation — single rotate key per scheme (no separate CW/CCW,
+        // Handle rotation ï¿½ single rotate key per scheme (no separate CW/CCW,
         // since the assignment only specifies WASD vs Arrows, not extra keys).
         // Wall kicks (from Data.cs) still apply on every rotation attempt.
         if (RotateKeyPressed())
@@ -69,7 +69,7 @@ public class Piece : MonoBehaviour
             Rotate(1);
         }
 
-        // Hard drop intentionally omitted for now — see project plan Section 1
+        // Hard drop intentionally omitted for now ï¿½ see project plan Section 1
         // scope notes: with only WASD/Arrows specified, there's no unclaimed
         // key to bind hard drop to for either piece without picking an
         // arbitrary extra key. Revisit as a team decision if you want it back.
@@ -153,9 +153,9 @@ public class Piece : MonoBehaviour
     private void Lock()
     {
         board.Set(this);
-        board.ClearLines();
+        board.ClearLines(this);
 
-        // Respawn THIS piece specifically, at ITS OWN spawn point — this is
+        // Respawn THIS piece specifically, at ITS OWN spawn point ï¿½ this is
         // the key change from the single-piece tutorial, where SpawnPiece()
         // took no arguments because there was only ever one piece to respawn.
         board.SpawnPiece(this, spawnPosition);
