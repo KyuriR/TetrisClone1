@@ -24,6 +24,8 @@ public class Board : MonoBehaviour
 
     public bool isGameOver { get; private set; }
 
+    public event System.Action OnGameOver;
+
     public RectInt Bounds
     {
         get
@@ -134,7 +136,6 @@ public class Board : MonoBehaviour
         }
 
         isGameOver = true;
-
         if (activePieceA != null)
         {
             activePieceA.enabled = false;
@@ -146,6 +147,8 @@ public class Board : MonoBehaviour
         }
 
         Debug.Log($"GAME OVER. Final score: {score}");
+
+        OnGameOver?.Invoke();
     }
 
     public void Set(Piece piece)
@@ -191,7 +194,9 @@ public class Board : MonoBehaviour
     public int score { get; private set; }
     public int totalLinesCleared { get; private set; }
     public int Level => totalLinesCleared / 10;
+
     public event System.Action<int> OnRowCleared;
+
     public event System.Action<int, int, Vector3> OnScoreAwarded;
 
     private static readonly int[] LineClearScores = { 0, 40, 100, 300, 1200 };
