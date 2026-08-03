@@ -1,10 +1,18 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+
+
 [DefaultExecutionOrder(-1)]
 public class Board : MonoBehaviour
 {
+    private TetrominoData nextPiece;
     public Tilemap tilemap { get; private set; }
+    public NextPiecePreview previewA;
+    public NextPiecePreview previewB;
+
+    private TetrominoData nextPieceA;
+    private TetrominoData nextPieceB;
 
     // Two active pieces instead of one. Assign these in the inspector to the
     // two Piece components under this Board � set each one's Control Scheme
@@ -26,6 +34,7 @@ public class Board : MonoBehaviour
     public bool endGameOnEitherBlocked = true;
 
     public RectInt Bounds
+
     {
         get
         {
@@ -46,6 +55,13 @@ public class Board : MonoBehaviour
 
     private void Start()
     {
+        nextPiece = tetrominoes[Random.Range(0, tetrominoes.Length)]; //Generatethe next piece
+        nextPieceA = tetrominoes[Random.Range(0, tetrominoes.Length)];
+        nextPieceB = tetrominoes[Random.Range(0, tetrominoes.Length)];
+
+        previewA.Show(nextPieceA);
+        previewB.Show(nextPieceB);
+
         SpawnPiece(activePieceA, spawnPositionA);
         SpawnPiece(activePieceB, spawnPositionB);
     }
@@ -92,10 +108,33 @@ public class Board : MonoBehaviour
     // it can request a respawn at the right spot after locking.
     public void SpawnPiece(Piece piece, Vector3Int spawnPosition)
     {
-        int random = Random.Range(0, tetrominoes.Length);
-        TetrominoData data = tetrominoes[random];
+        TetrominoData data;
+
+        if (piece == activePieceA)
+        {
+            data = nextPieceA;
+
+            nextPieceA = tetrominoes[Random.Range(0, tetrominoes.Length)];
+
+            previewA.Show(nextPieceA);
+        }
+        else
+        {
+            data = nextPieceB;
+
+            nextPieceB = tetrominoes[Random.Range(0, tetrominoes.Length)];
+
+            previewB.Show(nextPieceB);
+        }
 
         piece.Initialize(this, spawnPosition, data);
+
+
+
+       // int random = Random.Range(0, tetrominoes.Length);
+       // TetrominoData data = tetrominoes[random];
+
+        //piece.Initialize(this, spawnPosition, data);
 
         if (IsValidPosition(piece, spawnPosition))
         {
