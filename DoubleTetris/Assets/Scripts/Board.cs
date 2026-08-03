@@ -32,8 +32,10 @@ public class Board : MonoBehaviour
     // piece fails to spawn, or only if BOTH do? Exposed as a toggle rather
     // than hardcoded, since this is a real design decision, not just a bug fix.
     public bool endGameOnEitherBlocked = true;
+    //public LineClearPopup lineClearPopup;
 
     public RectInt Bounds
+
 
     {
         get
@@ -263,6 +265,8 @@ public class Board : MonoBehaviour
         {
             Set(other);
         }
+
+        //lineClearPopup.Show(linesClearedThisLock);
     }
 
     // Awards points for however many lines cleared in one lock event, scaled
