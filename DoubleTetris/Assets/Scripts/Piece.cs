@@ -39,11 +39,7 @@ public class Piece : MonoBehaviour
         this.spawnPosition = position;
 
         rotationIndex = 0;
-
-        stepTime = Time.time + stepDelay;  //testing the speed level
-        //stepDelay = Mathf.Max(0.1f, 1.0f - (board.Level * 0.05f));
-       // stepTime = Time.time + stepDelay;
-
+        stepTime = Time.time + stepDelay;
         moveTime = Time.time + moveDelay;
         lockTime = 0f;
 
@@ -145,8 +141,6 @@ public class Piece : MonoBehaviour
     private void Step()
     {
         stepTime = Time.time + stepDelay;
-       // stepDelay = Mathf.Max(0.1f, 1.0f - (board.Level * 0.05f));
-       // stepTime = Time.time + stepDelay;
 
         Move(Vector2Int.down);
 
