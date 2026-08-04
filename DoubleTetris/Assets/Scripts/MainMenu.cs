@@ -3,6 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+
+   // public GameObject MenuCanvas;
+  //  public GameObject InstructionText;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -24,5 +27,17 @@ public class MainMenu : MonoBehaviour
     {
 
         Application.Quit();
+    }
+
+    public void HowToPlay()
+    {
+        //MenuCanvas.SetActive(false);
+       // InstructionText.SetActive(true);
+    }
+
+    public void Back()
+    {
+        //MenuCanvas.SetActive(true);
+        //InstructionText.SetActive(false);
     }
 }
